@@ -3,8 +3,20 @@ from GrandmasterLeague import GrandMasterLeague
 
 def from_file(file_name):
     with open(file_name) as f:
-        group_a = GrandMasterLeague(f.readline().split())
-        group_b = GrandMasterLeague(f.readline().split())
+        players = list()
+        cnt = 0
+        while cnt != 8:
+            players_with_same_t3 = f.readline().split()
+            players.append(players_with_same_t3)
+            cnt += len(players_with_same_t3)
+        group_a = GrandMasterLeague(players)
+        players.clear()
+        cnt = 0
+        while cnt != 8:
+            players_with_same_t3 = f.readline().split()
+            players.append(players_with_same_t3)
+            cnt += len(players_with_same_t3)
+        group_b = GrandMasterLeague(players)
         matches = f.readlines()
         for raw_match in matches:
             match = raw_match.split()

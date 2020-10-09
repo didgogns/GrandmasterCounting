@@ -3,12 +3,19 @@ import random
 
 
 class GrandMasterLeague:
-    def __init__(self, names):
-        assert(len(names) == 8)
+    def __init__(self, names_sorted_by_t3):
+        cnt = 0
+        names = list()
+        self.tb2 = dict()
+        for t3, names_with_same_t3 in enumerate(names_sorted_by_t3):
+            cnt += len(names_with_same_t3)
+            names.extend(names_with_same_t3)
+            for name in names_with_same_t3:
+                self.tb2[name] = -0.01 * t3
+        assert(cnt == 8)
         self.names = names
         self.results = {tuple(sorted(match)): None for match in itertools.combinations(names, 2)}
         self.wins = {name: 0 for name in names}
-        self.tb2 = {name: 0 for name in names}
 
     def match(self, winner, loser):
         assert(winner in self.names)
@@ -45,8 +52,6 @@ class GrandMasterLeague:
         assert(self.is_ended())
 
     def get_tb2(self):
-        for name in self.names:
-            self.tb2[name] = 0
         for entry, result in self.results.items():
             winner, loser = entry
             if result == loser:
