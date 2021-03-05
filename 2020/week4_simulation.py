@@ -42,7 +42,12 @@ for i in range(N):
     group_b_probability_bottom[group_b_ranks[6]] += 1
     group_b_probability_bottom[group_b_ranks[7]] += 1
 
-group_a_names = sorted(group_a.names, key=lambda x: (group_a_probability_bottom[x], x))
+group_a_names = sorted(group_a.names, key=lambda x: (
+    group_a_probability_bottom[x],
+    -group_a_probability_top[x],
+    -group_a.wins[x],
+    x
+))
 table_a = list()
 table_a.append([round_per(group_a_probability_top[name], N) for name in group_a_names])
 table_a.append([round_per(group_a_probability_middle[name], N) for name in group_a_names])
@@ -50,10 +55,12 @@ table_a.append([round_per(group_a_probability_bottom[name], N) for name in group
 print(html_table(table_a, ['이름', '1-2위', '3-6위', '강등전'], group_a_names))
 print()
 
-group_b_names = sorted(
-    group_b.names,
-    key=lambda x:
-    (group_b_probability_rank_5[x] / 4 + group_b_probability_rank_6[x] / 2 + group_b_probability_bottom[x], x))
+group_b_names = sorted(group_b.names, key=lambda x: (
+    group_b_probability_rank_5[x] / 4 + group_b_probability_rank_6[x] / 2 + group_b_probability_bottom[x],
+    -group_b_probability_top[x],
+    -group_b.wins[x],
+    x
+))
 table_b = list()
 table_b.append([round_per(group_b_probability_top[name], N) for name in group_b_names])
 table_b.append([round_per(group_b_probability_rank_5[name], N) for name in group_b_names])
