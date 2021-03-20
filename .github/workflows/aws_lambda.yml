@@ -2,32 +2,18 @@ name: deploy to lambda
 on: [push]
 jobs:
 
-  deploy_zip:
-    name: deploy lambda function
+  deploy:
+    name: deploy to s3
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [3.6.13]
     steps:
       - name: checkout source code
         uses: actions/checkout@v1
-      - name: Install Go
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Build zip
+      - name: Deploy
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          zip deployment.zip 2021
-      - name: default deploy
-        uses: appleboy/lambda-action@master
-        with:
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: us-east-2
-          function_name: practice
-          zip_file: deployment.zip
-          memory_size: 128
-          timeout: 10
-          handler: lambda_function.lambda_handler
-          role: arn:aws:iam::387228731976:user/github-access-key
-          runtime: python3.6
+          aws s3 cp 2021 \
+            --recursive \
+            --region ap-northeast-2 \
+            build s3://gm-code-bucket
