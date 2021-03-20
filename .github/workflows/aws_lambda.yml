@@ -29,5 +29,5 @@ jobs:
           memory_size: 128
           timeout: 10
           handler: foobar
-          role: arn:aws:lambda:us-east-2:387228731976:function:practice
+          role: arn:aws:iam::387228731976:user/github-access-key
           runtime: python3.6
