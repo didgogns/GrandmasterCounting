@@ -23,11 +23,11 @@ jobs:
         with:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: ea-west-2
-          function_name: grandmaster
+          aws_region: ea-east-2
+          function_name: practice
           zip_file: deployment.zip
           memory_size: 128
           timeout: 10
           handler: foobar
-          role: arn:aws:iam::xxxxxxxxxxx:role/test1234
-          runtime: nodejs12.x
+          role: arn:aws:lambda:us-east-2:387228731976:function:practice
+          runtime: python3.6
