@@ -13,7 +13,7 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          cd 2021 && aws s3 cp \
+          aws s3 cp \
             --recursive \
             --region us-east-2 \
-            build s3://gm-code-bucket
+            2021 s3://gm-code-bucket
