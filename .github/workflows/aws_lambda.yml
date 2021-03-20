@@ -15,5 +15,5 @@ jobs:
         run: |
           cd 2021 && aws s3 cp \
             --recursive \
-            --region ap-northeast-2 \
+            --region us-east-2 \
             build s3://gm-code-bucket
