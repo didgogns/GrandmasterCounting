@@ -28,6 +28,6 @@ jobs:
           zip_file: deployment.zip
           memory_size: 128
           timeout: 10
-          handler: foobar
+          handler: lambda_function.lambda_handler
           role: arn:aws:iam::387228731976:user/github-access-key
           runtime: python3.6
