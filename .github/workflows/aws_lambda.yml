@@ -18,7 +18,7 @@ jobs:
       - name: Install Dependency
         run: cd 2021 && pip install -r requirements.txt -t .
       - name: Build zip
-        run: zip -r deployment.zip 2021/* -x "2021/bin/*"
+        run: cd 2021 && zip -r ../deployment.zip * -x "bin/*"
       - name: deploy lambda
         env:
           AWS_DEFAULT_REGION: us-east-2
