@@ -17,10 +17,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install Dependency
         run: cd 2021 && pip install -r requirements.txt -t .
-      - name: debug
-        run: ls
       - name: Build zip
-        run: zip -r deployment.zip 2021
+        run: zip -r deployment.zip 2021/* -x "2021/bin/*"
       - name: deploy lambda
         env:
           AWS_DEFAULT_REGION: us-east-2
