@@ -1,16 +1,18 @@
-import json
+import os
 import tweepy
 
 
 def get_api():
-    with open('auth.json') as json_file:
-        auth_json = json.load(json_file)
-
-    auth = tweepy.OAuthHandler(auth_json['API_KEY'], auth_json['API_SECRET_KEY'])
-    auth.set_access_token(auth_json['ACCESS_TOKEN'], auth_json['ACCESS_TOKEN_SECRET'])
+    auth = tweepy.OAuthHandler(os.environ['API_KEY'], os.environ['API_SECRET_KEY'])
+    auth.set_access_token(os.environ['ACCESS_TOKEN'], os.environ['ACCESS_TOKEN_SECRET'])
 
     api = tweepy.API(auth)
     return api
+
+
+def post_message(message):
+    api = get_api()
+    api.update_status(message)
 
 
 def post_picture(picture_path):
