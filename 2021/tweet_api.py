@@ -1,10 +1,28 @@
-import os
 import tweepy
+import boto3
+import os
+
+from base64 import b64decode
+
+
+def decrypt(encrypted):
+    decrypted = boto3.client('kms').decrypt(
+        CiphertextBlob=b64decode(encrypted),
+        EncryptionContext={'LambdaFunctionName': os.environ['AWS_LAMBDA_FUNCTION_NAME']}
+    )['Plaintext'].decode('utf-8')
+    return decrypted
+
+
+def identity_function(encrypted):
+    return encrypted
 
 
 def get_api():
-    auth = tweepy.OAuthHandler(os.environ['API_KEY'], os.environ['API_SECRET_KEY'])
-    auth.set_access_token(os.environ['ACCESS_TOKEN'], os.environ['ACCESS_TOKEN_SECRET'])
+    decrypt_func = identity_function
+    if os.environ['API_KEY'].startswith('AQI'):
+        decrypt_func = decrypt
+    auth = tweepy.OAuthHandler(decrypt_func(os.environ['API_KEY']), decrypt_func(os.environ['API_SECRET_KEY']))
+    auth.set_access_token(decrypt_func(os.environ['ACCESS_TOKEN']), decrypt_func(os.environ['ACCESS_TOKEN_SECRET']))
 
     api = tweepy.API(auth)
     return api

@@ -15,8 +15,7 @@ https://playhearthstone.com/en-us/esports/programs/rules-and-policies
 - Prettier table
 
 # Techs
-- [ ] AWS lambda + cron
+- [x] AWS lambda + cron
 - [ ] HTML parsing
-- [ ] AWS S3?
 - [x] Simulation
 - [x] ~~DCInside~~ Twitter API
