@@ -1,1 +1,3 @@
 tweepy==3.10.0
+selenium==3.341.0
+pandas=1.1.5

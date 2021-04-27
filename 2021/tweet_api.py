@@ -1,8 +1,9 @@
 import tweepy
 import boto3
 import os
-
 from base64 import b64decode
+
+import Util
 
 
 def decrypt(encrypted):
@@ -19,7 +20,7 @@ def identity_function(encrypted):
 
 def get_api():
     decrypt_func = identity_function
-    if os.environ['API_KEY'].startswith('AQI'):
+    if Util.is_aws():
         decrypt_func = decrypt
     auth = tweepy.OAuthHandler(decrypt_func(os.environ['API_KEY']), decrypt_func(os.environ['API_SECRET_KEY']))
     auth.set_access_token(decrypt_func(os.environ['ACCESS_TOKEN']), decrypt_func(os.environ['ACCESS_TOKEN_SECRET']))
