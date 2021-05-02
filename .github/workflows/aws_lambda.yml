@@ -19,7 +19,9 @@ jobs:
         run: cd 2021 && pip install -r requirements.txt -t .
       - name: Build zip
         run: cd 2021 && zip -r ../deployment.zip * -x "bin/*"
-      - name: deploy lambda
+      - name: Check zip file size
+        run: ls -al deployment.zip
+      - name: Deploy lambda
         env:
           AWS_DEFAULT_REGION: us-east-2
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
