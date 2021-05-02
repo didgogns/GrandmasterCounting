@@ -1,4 +1,4 @@
 tweepy==3.10.0
-selenium==3.341.0
+selenium==3.141.0
 pandas==1.1.5
 matplotlib==3.3.4
