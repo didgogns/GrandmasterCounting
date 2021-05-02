@@ -1,4 +1,3 @@
-import json
 import copy
 import tweet_api
 import datetime
@@ -23,23 +22,29 @@ def run(event, context):
                 original_parsed_league = parser.parse_league(region)
             except NoSuchElementException:
                 pass
+            if original_parsed_league is None:
+                break
         print(datetime.datetime.now())
         print('parse is done')
-        gmrc = RankCollection()
-        for i in range(num_runs):
-            parsed_league = copy.deepcopy(original_parsed_league)
-            parsed_league.finish()
-            rank = parsed_league.get_ranks()
-            gmrc.add_result(rank)
-        print(datetime.datetime.now())
-        print('simulation done')
+        if original_parsed_league is None:
+            print('nothing to do because this league is already parsed!')
+        else:
+            gmrc = RankCollection()
+            for i in range(num_runs):
+                parsed_league = copy.deepcopy(original_parsed_league)
+                parsed_league.finish()
+                rank = parsed_league.get_ranks()
+                gmrc.add_result(rank)
+            print(datetime.datetime.now())
+            print('simulation done')
 
-        data_frame = gmrc.export_to_df()
-        plot_dataframe_pretty(data_frame, region + ' Grandmaster standings', num_runs, region + '.png')
+            data_frame = gmrc.export_to_df()
+            print(data_frame)
+            plot_dataframe_pretty(data_frame, region + ' Grandmaster standings', num_runs, region + '.png')
 
-        #tweet_api.post_picture(region + '.png')
-        print(datetime.datetime.now())
-        print('tweet post done')
+            tweet_api.post_picture(region + '.png')
+            print(datetime.datetime.now())
+            print('tweet post done')
 
     return {
         'statusCode': 200,

@@ -1,3 +1,5 @@
+import json
+import os
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
@@ -14,11 +16,13 @@ def parse_bracket_match(competitors, competitor_list, grandmaster_pool, is_top_8
 
         if not is_top_8:
             # hard coding for 15-people NA league
-            if competitor_name is not '-' and 'Loser of' not in competitor_name and 'Winner of' not in competitor_name:
+            if competitor_name is not '-' and\
+                    'Loser of' not in competitor_name and 'Winner of' not in competitor_name:
                 competitor_list.add(competitor_name)
             if 'Loser of' in competitor_name:
                 competitor_name = '-'
-        elif competitor_name is not '-' and competitor_name not in competitor_list and 'Winner of' not in competitor_name:
+        elif competitor_name is not '-' and\
+                competitor_name not in competitor_list and 'Winner of' not in competitor_name:
             competitor_list.append(competitor_name)
 
         competitor_class = competitor.get_attribute('class')
@@ -69,8 +73,11 @@ class GrandmasterParser:
     def __init__(self, pool):
         self.driver = get_driver()
         self.pool = pool
+        self.turn_new_week = False
 
     def parse(self, url):
+        if self.turn_new_week:
+            return EmptyGrandmasterWeek(self.pool.get_masters())
         self.driver.get(url)
         self.driver.implicitly_wait(10)
         dual_tournament = self.driver.find_element_by_class_name('DualTournament')
@@ -135,24 +142,43 @@ class GrandmasterParser:
                                            (quarterfinals, semifinals, finals))
         if parsed_dual_tournaments == [None, None, None, None]:
             parsed_week = EmptyGrandmasterWeek(self.pool.get_masters())
+            self.turn_new_week = True
         else:
             parsed_week = GrandmasterWeek(parsed_dual_tournaments, parsed_tournament)
         parsed_week.validate()
         return parsed_week
 
     def parse_league(self, locale):
-        grandmaster_weeks = list()
+        cached_league = None
+        cached_league_json = None
+        if os.path.isfile(locale + '.json'):
+            with open(locale + '.json', 'r') as cached_file:
+                cached_league_json = json.load(cached_file)
+                cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
+        grandmaster_weeks = cached_league.weeks if cached_league is not None else [None] * 7
         for week in range(7):
+            if grandmaster_weeks[week] is not None and grandmaster_weeks[week].tournament is not None\
+                    and grandmaster_weeks[week].tournament.final is not None:
+                continue
+
             # TODO change seasonId later
             grandmaster_url =\
                 'https://playhearthstone.com/en-us/esports/standings/?region=%s&seasonId=1&stage=%i&year=2021'\
                 % (locale, week)
             grandmaster_week = self.parse(grandmaster_url)
-            grandmaster_weeks.append(grandmaster_week)
-        return GrandMasterLeague(self.pool.get_masters(), grandmaster_weeks)
+            grandmaster_weeks[week] = grandmaster_week
+        parsed_league = GrandMasterLeague(self.pool.get_masters(), grandmaster_weeks)
+        parsed_league_json = GrandMasterLeague.to_dict(parsed_league)
+        if cached_league_json == parsed_league_json:
+            # Nothing changed since last run
+            return None
+        with open(locale + '.json', 'w') as league_json:
+            json.dump(parsed_league_json, league_json)
+        return parsed_league
+
 
 if __name__ == '__main__':
     gm_pool = GrandmasterPool()
     parser = GrandmasterParser(gm_pool)
-    #parser.parse('https://playhearthstone.com/en-us/esports/standings/?region=NA&seasonId=1&stage=0&year=2021')
+    # parser.parse('https://playhearthstone.com/en-us/esports/standings/?region=NA&seasonId=1&stage=0&year=2021')
     original_parsed_league = parser.parse_league('NA')

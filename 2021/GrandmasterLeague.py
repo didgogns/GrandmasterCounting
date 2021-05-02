@@ -1,4 +1,5 @@
 import Util
+import GrandmasterWeek
 
 
 class GrandMasterLeague:
@@ -22,3 +23,19 @@ class GrandMasterLeague:
                     count_better += 1
             result[count_better] = grandmaster.name
         return result
+
+    @staticmethod
+    def to_dict(league):
+        result = dict()
+        result['grandmasters'] = [master.name for master in league.grandmasters]
+        result['weeks'] = [GrandmasterWeek.to_dict(week) for week in league.weeks]
+        return result
+
+    @staticmethod
+    def from_dict(league_dict, pool):
+        grandmasters_json = league_dict['grandmasters']
+        for grandmaster_json in grandmasters_json:
+            pool.get_master_by_name(grandmaster_json)
+        grandmasters = pool.get_masters()
+        weeks = [GrandmasterWeek.from_dict(week, pool) for week in league_dict['weeks']]
+        return GrandMasterLeague(grandmasters, weeks)

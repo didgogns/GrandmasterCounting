@@ -1,5 +1,6 @@
 from pandas import DataFrame
 
+
 class GrandmasterRanks:
     def __init__(self, name):
         self.name = name
@@ -32,4 +33,6 @@ class RankCollection:
             index=self.masters.keys(),
             columns=['playoff', 'rank 9-12', 'relegation']
         )
+        gm_data_frame = gm_data_frame.sort_values(['playoff', 'rank 9-12'])
+        gm_data_frame = gm_data_frame.drop('-', errors='ignore')
         return gm_data_frame
