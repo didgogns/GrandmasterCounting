@@ -70,9 +70,10 @@ def get_driver():
 
 
 class GrandmasterParser:
-    def __init__(self, pool):
+    def __init__(self, pool, path_prefix):
         self.driver = get_driver()
         self.pool = pool
+        self.path_prefix = path_prefix
         self.turn_new_week = False
 
     def parse(self, url):
@@ -151,8 +152,8 @@ class GrandmasterParser:
     def parse_league(self, locale):
         cached_league = None
         cached_league_json = None
-        if os.path.isfile(locale + '.json'):
-            with open(locale + '.json', 'r') as cached_file:
+        if os.path.isfile(self.path_prefix + locale + '.json'):
+            with open(self.path_prefix + locale + '.json', 'r') as cached_file:
                 cached_league_json = json.load(cached_file)
                 cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
         grandmaster_weeks = cached_league.weeks if cached_league is not None else [None] * 7
@@ -172,7 +173,7 @@ class GrandmasterParser:
         if cached_league_json == parsed_league_json:
             # Nothing changed since last run
             return None
-        with open(locale + '.json', 'w') as league_json:
+        with open(self.path_prefix + locale + '.json', 'w') as league_json:
             json.dump(parsed_league_json, league_json)
         return parsed_league
 

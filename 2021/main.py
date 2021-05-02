@@ -1,20 +1,23 @@
 import copy
-import tweet_api
 import datetime
+from selenium.common.exceptions import NoSuchElementException
+
 from Parser import GrandmasterParser
 from GrandmasterPool import GrandmasterPool
 from GrandmasterRankCollection import RankCollection
 from DFPlotter import plot_dataframe_pretty
-from selenium.common.exceptions import NoSuchElementException
+import tweet_api
+import Util
 
 
 def run(event, context):
     print(datetime.datetime.now())
     print('start run!')
     regions = ['NA', 'EU', 'APAC']
+    path_prefix = '/tmp/' if Util.is_aws() else ''
     for region in regions:
         gm_pool = GrandmasterPool()
-        parser = GrandmasterParser(gm_pool)
+        parser = GrandmasterParser(gm_pool, path_prefix)
         num_runs = 100000
         original_parsed_league = None
         while original_parsed_league is None:
@@ -38,11 +41,10 @@ def run(event, context):
             print(datetime.datetime.now())
             print('simulation done')
 
-            data_frame = gmrc.export_to_df()
-            print(data_frame)
-            plot_dataframe_pretty(data_frame, region + ' Grandmaster standings', num_runs, region + '.png')
+            gm_array = gmrc.export_to_array()
+            plot_dataframe_pretty(gm_array, region + ' Grandmaster standings', num_runs, path_prefix + region + '.png')
 
-            tweet_api.post_picture(region + '.png')
+            #tweet_api.post_picture(region + '.png')
             print(datetime.datetime.now())
             print('tweet post done')
 
