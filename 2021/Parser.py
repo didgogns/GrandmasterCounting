@@ -18,7 +18,7 @@ def parse_bracket_match(competitors, competitor_list, grandmaster_pool, is_top_8
             # hard coding for 15-people NA league
             if competitor_name is not '-' and\
                     'Loser of' not in competitor_name and 'Winner of' not in competitor_name:
-                competitor_list.add(competitor_name)
+                competitor_list.append(competitor_name)
             if 'Loser of' in competitor_name:
                 competitor_name = '-'
         elif competitor_name is not '-' and\
@@ -85,7 +85,7 @@ class GrandmasterParser:
         dual_tournament_groups = dual_tournament.find_elements_by_class_name('DualTournamentGroup')
         parsed_dual_tournaments = list()
         for dual_tournament_group in dual_tournament_groups:
-            competitor_list = set()
+            competitor_list = list()
             initials = [None, None]
             winners = None
             losers = None
@@ -110,7 +110,7 @@ class GrandmasterParser:
 
             # hard coding for 15-people NA league
             if len(competitor_list) == 3:
-                competitor_list.add('-')
+                competitor_list.append('-')
 
             parsed_dual_tournament = None
             if len(competitor_list) == 4:
@@ -138,7 +138,7 @@ class GrandmasterParser:
             else:
                 finals = match
         parsed_tournament = None
-        if quarterfinals is not [None, None, None, None]:
+        if quarterfinals != [None, None, None, None]:
             parsed_tournament = Tournament([self.pool.get_master_by_name(competitor) for competitor in competitor_list],
                                            (quarterfinals, semifinals, finals))
         if parsed_dual_tournaments == [None, None, None, None]:
