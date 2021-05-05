@@ -160,6 +160,8 @@ class GrandmasterParser:
             with open(self.path_prefix + locale + '.json', 'r') as cached_file:
                 cached_league_json = json.load(cached_file)
                 cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
+                print('found cached file:')
+                print(cached_league_json)
         grandmaster_weeks = cached_league.weeks if cached_league is not None else [None] * 7
         for week in range(7):
             if grandmaster_weeks[week] is not None and grandmaster_weeks[week].tournament is not None\
