@@ -44,7 +44,7 @@ def run(event, context):
             gm_array = gmrc.export_to_array()
             plot_dataframe_pretty(gm_array, region + ' Grandmaster standings', num_runs, path_prefix + region + '.png')
 
-            #tweet_api.post_picture(region + '.png')
+            tweet_api.post_picture(path_prefix + region + '.png')
             print(datetime.datetime.now())
             print('tweet post done')
 
