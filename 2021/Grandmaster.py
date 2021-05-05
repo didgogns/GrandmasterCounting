@@ -20,7 +20,7 @@ class GrandMaster:
         print(self.name, self.scores)
 
     def __eq__(self, other):
-        return self.result() == other.result()
+        return self.name == other.name
 
     def __lt__(self, other):
         if self.score() < other.score():
