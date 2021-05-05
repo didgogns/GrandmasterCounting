@@ -174,6 +174,7 @@ class GrandmasterParser:
             # Nothing changed since last run
             return None
         with open(self.path_prefix + locale + '.json', 'w') as league_json:
+            print(parsed_league_json)
             json.dump(parsed_league_json, league_json)
         return parsed_league
 
