@@ -14,16 +14,21 @@ def parse_bracket_match(competitors, competitor_list, grandmaster_pool, is_top_8
     for competitor in competitors:
         competitor_name = competitor.find_element_by_class_name('BracketMatchCompetitor-name').text
 
+        competitor_from_pool = None
+        if competitor_name != '-' and 'Loser of' not in competitor_name and 'Winner of' not in competitor_name:
+            competitor_from_pool = grandmaster_pool.get_master_by_name(competitor_name)
+
         if not is_top_8:
             # hard coding for 15-people NA league
             if competitor_name is not '-' and\
-                    'Loser of' not in competitor_name and 'Winner of' not in competitor_name:
-                competitor_list.append(competitor_name)
+                    'Loser of' not in competitor_name and 'Winner of' not in competitor_name and\
+                    competitor_from_pool not in competitor_list:
+                competitor_list.append(grandmaster_pool.get_master_by_name(competitor_name))
             if 'Loser of' in competitor_name:
                 competitor_name = '-'
-        elif competitor_name is not '-' and\
-                competitor_name not in competitor_list and 'Winner of' not in competitor_name:
-            competitor_list.append(competitor_name)
+        elif competitor_name is not '-' and \
+                competitor_from_pool not in competitor_list and 'Winner of' not in competitor_name:
+            competitor_list.append(grandmaster_pool.get_master_by_name(competitor_name))
 
         competitor_class = competitor.get_attribute('class')
         if 'matchWin' in competitor_class:
@@ -110,7 +115,7 @@ class GrandmasterParser:
 
             # hard coding for 15-people NA league
             if len(competitor_list) == 3:
-                competitor_list.append('-')
+                competitor_list.append(self.pool.get_master_by_name('-'))
 
             parsed_dual_tournament = None
             if len(competitor_list) == 4:
@@ -139,8 +144,7 @@ class GrandmasterParser:
                 finals = match
         parsed_tournament = None
         if quarterfinals != [None, None, None, None]:
-            parsed_tournament = Tournament([self.pool.get_master_by_name(competitor) for competitor in competitor_list],
-                                           (quarterfinals, semifinals, finals))
+            parsed_tournament = Tournament(competitor_list, (quarterfinals, semifinals, finals))
         if parsed_dual_tournaments == [None, None, None, None]:
             parsed_week = EmptyGrandmasterWeek(self.pool.get_masters())
             self.turn_new_week = True

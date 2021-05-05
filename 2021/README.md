@@ -22,6 +22,4 @@ https://playhearthstone.com/en-us/esports/programs/rules-and-policies
 - [x] ~~DCInside~~ Twitter API
 
 # TODO
-- [ ] Install headless Chrome to AWS lambda instance
-- [ ] Cache league result and query less
 - [ ] Display rank 1-2, rank 3-6, rank 7-8 somehow (another chart?)
