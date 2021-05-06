@@ -27,14 +27,20 @@ class GrandMaster:
             return True
         if self.score() > other.score():
             return False
-        if self.result() < other.result():
-            return True
         if self.result() > other.result():
+            return True
+        if self.result() < other.result():
             return False
         return self.luck > other.luck
 
 
 if __name__ == '__main__':
-    surrender = GrandMaster("surrender", [1, 3])
-    hi3 = GrandMaster("hi3", [2, 2])
+    surrender = GrandMaster("surrender")
+    hi3 = GrandMaster("hi3")
+    surrender.receive(3)
+    surrender.receive(3)
+    surrender.receive(3)
+    hi3.receive(5)
+    hi3.receive(3)
+    hi3.receive(1)
     print(surrender > hi3)
