@@ -17,7 +17,7 @@ def run(event, context):
     path_prefix = '/tmp/' if Util.is_aws() else ''
     for region in regions:
         gm_pool = GrandmasterPool()
-        parser = GrandmasterParser(gm_pool, path_prefix)
+        parser = GrandmasterParser(gm_pool, Util.is_aws())
         num_runs = 100000
         original_parsed_league = None
         while original_parsed_league is None:
@@ -42,6 +42,7 @@ def run(event, context):
             print('simulation done')
 
             gm_array = gmrc.export_to_array()
+            print(gm_array)
             plot_dataframe_pretty(gm_array, region + ' Grandmaster standings', num_runs, path_prefix + region + '.png')
 
             tweet_api.post_picture(path_prefix + region + '.png')

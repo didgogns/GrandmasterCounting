@@ -6,6 +6,7 @@ from selenium.webdriver.chrome.options import Options
 from GrandmasterWeek import GrandmasterWeek, EmptyGrandmasterWeek, Tournament, DualTournament
 from GrandmasterPool import GrandmasterPool
 from GrandmasterLeague import GrandMasterLeague
+import S3Client
 import Util
 
 
@@ -75,10 +76,10 @@ def get_driver():
 
 
 class GrandmasterParser:
-    def __init__(self, pool, path_prefix):
+    def __init__(self, pool, is_aws):
         self.driver = get_driver()
         self.pool = pool
-        self.path_prefix = path_prefix
+        self.is_aws = is_aws
         self.turn_new_week = False
 
     def parse(self, url):
@@ -156,12 +157,18 @@ class GrandmasterParser:
     def parse_league(self, locale):
         cached_league = None
         cached_league_json = None
-        if os.path.isfile(self.path_prefix + locale + '.json'):
-            with open(self.path_prefix + locale + '.json', 'r') as cached_file:
-                cached_league_json = json.load(cached_file)
-                cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
-                print('found cached file:')
-                print(cached_league_json)
+        if self.is_aws:
+            raw_cached = S3Client.from_file(locale + '.json')
+            cached_league_json = json.loads(raw_cached)
+            cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
+        else:
+            if os.path.isfile(locale + '.json'):
+                with open(locale + '.json', 'r') as cached_file:
+                    cached_league_json = json.load(cached_file)
+                    cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
+        if cached_league_json is not None:
+            print('found cached file:')
+            print(cached_league_json)
         grandmaster_weeks = cached_league.weeks if cached_league is not None else [None] * 7
         for week in range(7):
             if grandmaster_weeks[week] is not None and grandmaster_weeks[week].tournament is not None\
@@ -179,9 +186,12 @@ class GrandmasterParser:
         if cached_league_json == parsed_league_json:
             # Nothing changed since last run
             return None
-        with open(self.path_prefix + locale + '.json', 'w') as league_json:
-            print(parsed_league_json)
-            json.dump(parsed_league_json, league_json)
+        if self.is_aws:
+            raw_parsed = json.dumps(parsed_league_json)
+            S3Client.to_file(raw_parsed, locale + '.json')
+        else:
+            with open(locale + '.json', 'w') as league_json:
+                json.dump(parsed_league_json, league_json)
         return parsed_league
 
 
