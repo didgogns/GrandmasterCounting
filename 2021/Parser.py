@@ -10,7 +10,7 @@ import S3Client
 import Util
 
 
-def parse_bracket_match(competitors, competitor_list, grandmaster_pool, is_top_8):
+def parse_bracket_match(competitors, competitor_list, grandmaster_pool):
     match = [None, None]
     for competitor in competitors:
         competitor_name = competitor.find_element_by_class_name('BracketMatchCompetitor-name').text
@@ -19,25 +19,19 @@ def parse_bracket_match(competitors, competitor_list, grandmaster_pool, is_top_8
         if competitor_name != '-' and 'Loser of' not in competitor_name and 'Winner of' not in competitor_name:
             competitor_from_pool = grandmaster_pool.get_master_by_name(competitor_name)
 
-        if not is_top_8:
-            # hard coding for 15-people NA league
-            if competitor_name is not '-' and\
-                    'Loser of' not in competitor_name and 'Winner of' not in competitor_name and\
-                    competitor_from_pool not in competitor_list:
-                competitor_list.append(grandmaster_pool.get_master_by_name(competitor_name))
-            if 'Loser of' in competitor_name:
-                competitor_name = '-'
-        elif competitor_name is not '-' and \
-                competitor_from_pool not in competitor_list and 'Winner of' not in competitor_name:
-            competitor_list.append(grandmaster_pool.get_master_by_name(competitor_name))
+        if competitor_from_pool is not None and competitor_from_pool not in competitor_list:
+            competitor_list.append(competitor_from_pool)
 
         competitor_class = competitor.get_attribute('class')
         if 'matchWin' in competitor_class:
-            match[0] = grandmaster_pool.get_master_by_name(competitor_name)
+            match[0] = competitor_from_pool
         elif 'matchLoss' in competitor_class:
-            match[1] = grandmaster_pool.get_master_by_name(competitor_name)
+            match[1] = competitor_from_pool
     if match[0] is None:
         match = None
+    # hard coding for 15-people NA league
+    if match is not None and match[1] is None:
+        match[1] = grandmaster_pool.get_master_by_name('-')
     return match
 
 
@@ -101,7 +95,7 @@ class GrandmasterParser:
             bracket_matches = self.driver.find_elements_by_class_name('BracketMatch')
             for bracket_match in bracket_matches:
                 competitors = bracket_match.find_elements_by_class_name('BracketMatchCompetitor')
-                match = parse_bracket_match(competitors, competitor_list, self.pool, False)
+                match = parse_bracket_match(competitors, competitor_list, self.pool)
                 match_id = bracket_match.find_element_by_class_name('BracketMatch-id').text
                 if match_id == 'U1':
                     initials[0] = match
@@ -134,7 +128,7 @@ class GrandmasterParser:
         finals = None
         for bracket_match in single_elimination_matches:
             competitors = bracket_match.find_elements_by_class_name('BracketMatchCompetitor')
-            match = parse_bracket_match(competitors, competitor_list, self.pool, True)
+            match = parse_bracket_match(competitors, competitor_list, self.pool)
             match_id = bracket_match.find_element_by_class_name('BracketMatch-id').text
             match_id_num = int(match_id[1])
             if match_id_num <= 4:
@@ -159,8 +153,9 @@ class GrandmasterParser:
         cached_league_json = None
         if self.is_aws:
             raw_cached = S3Client.from_file(locale + '.json')
-            cached_league_json = json.loads(raw_cached)
-            cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
+            if raw_cached is not None:
+                cached_league_json = json.loads(raw_cached)
+                cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
         else:
             if os.path.isfile(locale + '.json'):
                 with open(locale + '.json', 'r') as cached_file:
