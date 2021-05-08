@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
-def plot_dataframe_pretty(gm_array, plot_title, total_runs, output_file):
+def plot_dataframe_pretty(gm_array, plot_title, total_runs, output_file, use_color_scheme):
     gm_array, labels = gm_array
     rcParams.update({'figure.autolayout': True})
     gm_names = list(gm_array[:, 0])
@@ -14,9 +14,12 @@ def plot_dataframe_pretty(gm_array, plot_title, total_runs, output_file):
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    plotted1 = ax.barh(gm_names, first_column, align='center', label=labels[0])
-    plotted2 = ax.barh(gm_names, second_column, align='center', left=first_column, label=labels[1])
-    plotted3 = ax.barh(gm_names, third_column, align='center', left=a_plus_b, label=labels[2])
+    colors = [None] * 3
+    if use_color_scheme:
+        colors = ['#D62728', '#9467BD', '#8C564B']
+    plotted1 = ax.barh(gm_names, first_column, align='center', label=labels[0], color=colors[0])
+    plotted2 = ax.barh(gm_names, second_column, align='center', left=first_column, label=labels[1], color=colors[1])
+    plotted3 = ax.barh(gm_names, third_column, align='center', left=a_plus_b, label=labels[2], color=colors[2])
     plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     patch_count = [0] * 16
     plotted_graphs = [plotted1, plotted2, plotted3]
@@ -31,8 +34,7 @@ def plot_dataframe_pretty(gm_array, plot_title, total_runs, output_file):
                 patch_location = min(max(total_runs * 0.1, patch_location), total_runs * 0.9)
             elif patch_count[int(round(patch_y))] == 2:
                 patch_location = min(max(total_runs * 0.2, patch_location), total_runs)
-            if width != 0:
-                plt.annotate('{0:.0%}'.format(width / total_runs), (patch_location, patch_y))
+            plt.annotate('{0:.0%}'.format(width / total_runs), (patch_location, patch_y))
             patch_count[int(round(patch_y))] += 1
     ax.set_title(plot_title)
     ax.xaxis.set_visible(False)
@@ -60,5 +62,5 @@ if __name__ == '__main__':
                 ['Impact', 805, 2305, 6890],
                 ['-', 0, 0, 10000]
                 ]
-    gm_data_frame = np.array(contents)
-    plot_dataframe_pretty(gm_data_frame, 'Grandmaster NA Rankings', 10000, 'output.png', ['a', 'b', 'c'])
+    gm_data_frame = np.array(contents), ['a', 'b', 'c']
+    plot_dataframe_pretty(gm_data_frame, 'Grandmaster NA Rankings', 10000, 'output.png', True)

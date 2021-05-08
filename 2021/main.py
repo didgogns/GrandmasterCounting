@@ -4,7 +4,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 from Parser import GrandmasterParser
 from GrandmasterPool import GrandmasterPool
-from GrandmasterRankCollection import RankCollection
+from GrandmasterRankCollection import RankCollection, RankCollectionForPlayoff
 from DFPlotter import plot_dataframe_pretty
 import tweet_api
 import Util
@@ -13,6 +13,8 @@ import Util
 def run(event, context):
     print(datetime.datetime.now())
     print('start run!')
+    print(event)
+    print(context)
     regions = ['NA', 'EU', 'APAC']
     path_prefix = '/tmp/' if Util.is_aws() else ''
     for region in regions:
@@ -32,20 +34,28 @@ def run(event, context):
         if original_parsed_league is None:
             print('nothing to do because this league is already parsed!')
         else:
-            gmrc = RankCollection()
+            rank_collection = RankCollection()
+            rank_collection_for_playoff = RankCollectionForPlayoff()
             for i in range(num_runs):
                 parsed_league = copy.deepcopy(original_parsed_league)
                 parsed_league.finish()
                 rank = parsed_league.get_ranks()
-                gmrc.add_result(rank)
+                rank_collection.add_result(rank)
+                rank_collection_for_playoff.add_result(rank)
             print(datetime.datetime.now())
             print('simulation done')
 
-            gm_array = gmrc.export_to_array()
+            gm_array = rank_collection.export_to_array()
             print(gm_array)
-            plot_dataframe_pretty(gm_array, region + ' Grandmaster standings', num_runs, path_prefix + region + '.png')
+            plot_dataframe_pretty(gm_array, region + ' Grandmaster standings',
+                                  num_runs, path_prefix + region + '.png', False)
+            gm_array_for_playoff = rank_collection_for_playoff.export_to_array()
+            print(gm_array_for_playoff)
+            plot_dataframe_pretty(gm_array_for_playoff, region + ' Grandmaster playoff',
+                                  num_runs, path_prefix + region + '_playoff.png', True)
 
             tweet_api.post_picture(path_prefix + region + '.png')
+            tweet_api.post_picture(path_prefix + region + '_playoff.png')
             print(datetime.datetime.now())
             print('tweet post done')
 
