@@ -57,9 +57,9 @@ def run(event, context):
             datetime_parsed = datetime.datetime.strptime(event['time'], '%Y-%m-%dT%H:%M:%SZ')
             datetime_formatted = datetime.datetime.strftime(datetime_parsed, '%H:%M (UTC) on %b %d, %Y')
             tweet_api.post_picture_and_message(path_prefix + region + '.png',
-                                               'Grandmaster standing as of ' + datetime_formatted)
+                                               region + ' Grandmaster standing as of ' + datetime_formatted)
             tweet_api.post_picture_and_message(path_prefix + region + '_playoff.png',
-                                               'Grandmaster playoff odds as of ' + datetime_formatted)
+                                               region + ' Grandmaster playoff odds as of ' + datetime_formatted)
             print(datetime.datetime.now())
             print('tweet post done')
 
