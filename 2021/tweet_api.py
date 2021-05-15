@@ -42,7 +42,7 @@ def post_picture(picture_path):
 def post_picture_and_message(picture_path, message):
     api = get_api()
     result = api.media_upload(picture_path)
-    api.update_status(status=message, media_ids=[result])
+    api.update_status(status=message, media_ids=[result.media_id_string])
 
 
 if __name__ == '__main__':
