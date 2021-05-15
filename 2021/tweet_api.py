@@ -39,5 +39,11 @@ def post_picture(picture_path):
     api.update_with_media(picture_path)
 
 
+def post_picture_and_message(picture_path, message):
+    api = get_api()
+    result = api.media_upload(picture_path)
+    api.update_status(status=message, media_ids=[result])
+
+
 if __name__ == '__main__':
     post_picture('C:\\Users\\USER-PC\\Pictures\\The_Coin_full.jpg')

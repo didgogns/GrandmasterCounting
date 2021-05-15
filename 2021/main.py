@@ -54,8 +54,12 @@ def run(event, context):
             plot_dataframe_pretty(gm_array_for_playoff, region + ' Grandmaster playoff',
                                   num_runs, path_prefix + region + '_playoff.png', True)
 
-            tweet_api.post_picture(path_prefix + region + '.png')
-            tweet_api.post_picture(path_prefix + region + '_playoff.png')
+            datetime_parsed = datetime.datetime.strptime(event['time'], '%Y-%m-%dT%H:%M:%SZ')
+            datetime_formatted = datetime.datetime.strftime(datetime_parsed, '%H:%M (UTC) on %b %d, %Y')
+            tweet_api.post_picture_and_message(path_prefix + region + '.png',
+                                               'Grandmaster standing as of ' + datetime_formatted)
+            tweet_api.post_picture_and_message(path_prefix + region + '_playoff.png',
+                                               'Grandmaster playoff odds as of ' + datetime_formatted)
             print(datetime.datetime.now())
             print('tweet post done')
 
@@ -66,4 +70,14 @@ def run(event, context):
 
 
 if __name__ == '__main__':
-    run(None, None)
+    run({
+        'version': '0',
+        'id': '38228180-d144-c56d-e335-401ed607e83b',
+        'detail-type': 'Scheduled Event',
+        'source': 'aws.events',
+        'account': '387228731976',
+        'time': '2021-05-15T07:00:00Z',
+        'region': 'us-east-2',
+        'resources': ['arn:aws:events:us-east-2:387228731976:rule/5mins'],
+        'detail': {}
+    }, None)
