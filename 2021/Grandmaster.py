@@ -1,12 +1,19 @@
+from functools import total_ordering
+
+@total_ordering
 class GrandMaster:
     def __init__(self, name):
         self.name = name
         self.scores = list()
+        self.score_sum = -1
         self.sorted_scores = None
-        self.luck = 0
 
     def receive(self, score):
-        self.scores.append(score)
+        # Hard coding for xBlyzes penalty on week 5
+        if self.name == 'xBlyzes' and len(self.scores) == 4:
+            self.scores.append(0)
+        else:
+            self.scores.append(score)
 
     def result(self):
         if self.sorted_scores is None:
@@ -14,24 +21,22 @@ class GrandMaster:
         return self.sorted_scores
 
     def score(self):
-        return sum(self.scores)
+        if self.score_sum == -1:
+            self.score_sum = sum(self.scores)
+        return self.score_sum
 
     def print(self):
         print(self.name, self.scores)
 
     def __eq__(self, other):
-        return self.name == other.name
+        return self.result() == other.result()
 
     def __lt__(self, other):
-        if self.score() < other.score():
-            return True
         if self.score() > other.score():
-            return False
-        if self.result() > other.result():
             return True
-        if self.result() < other.result():
+        if self.score() < other.score():
             return False
-        return self.luck > other.luck
+        return self.result() < other.result()
 
 
 if __name__ == '__main__':
@@ -43,4 +48,10 @@ if __name__ == '__main__':
     hi3.receive(5)
     hi3.receive(3)
     hi3.receive(1)
+    Dawn = GrandMaster('Dawn')
+    Dawn.receive(4)
+    Dawn.receive(4)
+    Dawn.receive(4)
     print(surrender > hi3)
+    print(hi3 < hi3)
+    print(Dawn > surrender)

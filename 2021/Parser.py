@@ -19,7 +19,8 @@ def parse_bracket_match(competitors, competitor_list, grandmaster_pool):
         if competitor_name != '-' and 'Loser of' not in competitor_name and 'Winner of' not in competitor_name:
             competitor_from_pool = grandmaster_pool.get_master_by_name(competitor_name)
 
-        if competitor_from_pool is not None and competitor_from_pool not in competitor_list:
+        if competitor_from_pool is not None and \
+                competitor_from_pool.name not in [competitor.name for competitor in competitor_list]:
             competitor_list.append(competitor_from_pool)
 
         competitor_class = competitor.get_attribute('class')
@@ -53,7 +54,9 @@ def get_driver():
         chrome_options.add_argument('--ignore-certificate-errors')
         chrome_options.add_argument('--homedir=/tmp')
         chrome_options.add_argument('--disk-cache-dir=/tmp/cache-dir')
-        chrome_options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36')
+        chrome_options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) '
+                                    'AppleWebKit/537.36 (KHTML, like Gecko) '
+                                    'Chrome/61.0.3163.100 Safari/537.36')
         chrome_options.binary_location = "/opt/python/bin/headless-chromium"
 
         driver = webdriver.Chrome('/opt/python/bin/chromedriver', chrome_options=chrome_options)
@@ -192,6 +195,6 @@ class GrandmasterParser:
 
 if __name__ == '__main__':
     gm_pool = GrandmasterPool()
-    parser = GrandmasterParser(gm_pool)
+    parser = GrandmasterParser(gm_pool, False)
     # parser.parse('https://playhearthstone.com/en-us/esports/standings/?region=NA&seasonId=1&stage=0&year=2021')
     original_parsed_league = parser.parse_league('NA')
