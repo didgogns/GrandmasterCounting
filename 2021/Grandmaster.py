@@ -9,24 +9,22 @@ class GrandMaster:
         self.sorted_scores = None
 
     def receive(self, score):
-        # Hard coding for xBlyzes penalty on week 5
-        if self.name == 'xBlyzes' and len(self.scores) == 4:
-            self.scores.append(0)
-        else:
-            self.scores.append(score)
+        self.scores.append(score)
 
     def result(self):
         if self.sorted_scores is None:
-            self.sorted_scores = sorted(self.scores)
+            self.sorted_scores = sorted(self.scores, reverse=True)
         return self.sorted_scores
 
     def score(self):
         if self.score_sum == -1:
             self.score_sum = sum(self.scores)
+            if self.name == 'xBlyzes':
+                self.score_sum -= 2
         return self.score_sum
 
     def print(self):
-        print(self.name, self.scores)
+        print(self.name, self.score_sum, self.sorted_scores)
 
     def __eq__(self, other):
         return self.result() == other.result()
@@ -36,7 +34,7 @@ class GrandMaster:
             return True
         if self.score() < other.score():
             return False
-        return self.result() < other.result()
+        return self.result() > other.result()
 
 
 if __name__ == '__main__':
@@ -44,8 +42,8 @@ if __name__ == '__main__':
     hi3 = GrandMaster("hi3")
     surrender.receive(3)
     surrender.receive(3)
-    surrender.receive(3)
-    hi3.receive(5)
+    surrender.receive(2)
+    hi3.receive(4)
     hi3.receive(3)
     hi3.receive(1)
     Dawn = GrandMaster('Dawn')
@@ -55,3 +53,6 @@ if __name__ == '__main__':
     print(surrender > hi3)
     print(hi3 < hi3)
     print(Dawn > surrender)
+    surrender.print()
+    hi3.print()
+    Dawn.print()
