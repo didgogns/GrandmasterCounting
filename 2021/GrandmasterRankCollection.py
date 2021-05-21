@@ -28,9 +28,10 @@ class RankCollection:
             self.masters[rank_list[i]].third_result += 1
 
     def export_to_array(self):
-        gm_array = np.array([[gm.name, gm.first_result, gm.second_result, gm.third_result] for gm in self.masters.values()
-                             if gm.name != '-'])
-        ind = np.lexsort([gm_array[:, 0], gm_array[:, 2].astype(int) + gm_array[:, 1].astype(int) * 2])
+        gm_array = np.array([[gm.name, gm.first_result, gm.second_result, gm.third_result]
+                             for gm in self.masters.values() if gm.name != '-'])
+        ind = np.lexsort([gm_array[:, 0],
+                          gm_array[:, 3].astype(int) + gm_array[:, 2].astype(int) * 2 + gm_array[:, 1].astype(int) * 3])
         gm_array = gm_array[ind]
         return gm_array, ['playoff', 'rank 9-12', 'relegation']
 
@@ -54,8 +55,9 @@ class RankCollectionForPlayoff:
             self.masters[rank_list[i]].third_result += 1
 
     def export_to_array(self):
-        gm_array = np.array([[gm.name, gm.first_result, gm.second_result, gm.third_result] for gm in self.masters.values()
-                             if gm.name != '-'])
-        ind = np.lexsort([gm_array[:, 0], gm_array[:, 2].astype(int) + gm_array[:, 1].astype(int) * 2])
+        gm_array = np.array([[gm.name, gm.first_result, gm.second_result, gm.third_result]
+                             for gm in self.masters.values() if gm.name != '-'])
+        ind = np.lexsort([gm_array[:, 0],
+                          gm_array[:, 3].astype(int) + gm_array[:, 2].astype(int) * 2 + gm_array[:, 1].astype(int) * 3])
         gm_array = gm_array[ind]
         return gm_array, ['rank 1-2', 'rank 3-6', 'rank 7-8']
