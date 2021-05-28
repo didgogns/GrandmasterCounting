@@ -76,7 +76,7 @@ if __name__ == '__main__':
         'detail-type': 'Scheduled Event',
         'source': 'aws.events',
         'account': '387228731976',
-        'time': '2021-05-15T07:00:00Z',
+        'time': '2021-05-28T12:00:00Z',
         'region': 'us-east-2',
         'resources': ['arn:aws:events:us-east-2:387228731976:rule/5mins'],
         'detail': {}

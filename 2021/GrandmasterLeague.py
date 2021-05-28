@@ -26,7 +26,8 @@ class GrandMasterLeague:
     def from_dict(league_dict, pool):
         grandmasters_json = league_dict['grandmasters']
         for grandmaster_json in grandmasters_json:
-            pool.get_master_by_name(grandmaster_json)
+            if grandmaster_json:
+                pool.get_master_by_name(grandmaster_json)
         grandmasters = pool.get_masters()
         weeks = [GrandmasterWeek.from_dict(week, pool) for week in league_dict['weeks']]
         return GrandMasterLeague(grandmasters, weeks)
