@@ -158,12 +158,12 @@ class GrandmasterParser:
             raw_cached = S3Client.from_file(locale + '.json')
             if raw_cached is not None:
                 cached_league_json = json.loads(raw_cached)
-                cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
+                cached_league = GrandMasterLeague.init_from_json(cached_league_json, self.pool)
         else:
             if os.path.isfile(locale + '.json'):
                 with open(locale + '.json', 'r') as cached_file:
                     cached_league_json = json.load(cached_file)
-                    cached_league = GrandMasterLeague.from_dict(cached_league_json, self.pool)
+                    cached_league = GrandMasterLeague.init_from_json(cached_league_json, self.pool)
         if cached_league_json is not None:
             print('found cached file:')
             print(cached_league_json)
@@ -180,7 +180,7 @@ class GrandmasterParser:
             grandmaster_week = self.parse(grandmaster_url)
             grandmaster_weeks[week] = grandmaster_week
         parsed_league = GrandMasterLeague(self.pool.get_masters(), grandmaster_weeks)
-        parsed_league_json = GrandMasterLeague.to_dict(parsed_league)
+        parsed_league_json = parsed_league.export()
         if cached_league_json == parsed_league_json:
             # Nothing changed since last run
             return None
