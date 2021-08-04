@@ -42,19 +42,19 @@ def plot_dataframe_pretty(gm_array, plot_title, total_runs, output_file, use_col
             width = patch.get_width()
             patch_y = patch.get_y() - 0.3
             if patch_count[int(round(patch_y))] > 2:
-                patch_y = patch.get_y() + 0.1
+                patch_y = patch.get_y() + 0.2
             patch_location = patch.get_x() + width / 2
             if patch_count[int(round(patch_y))] == 0:
-                patch_location = min(max(0, patch_location), total_runs * 0.76)
+                patch_location = min(max(0, patch_location), total_runs * 0.64)
             elif patch_count[int(round(patch_y))] == 1:
-                patch_location = min(max(total_runs * 0.06, patch_location), total_runs * 0.82)
+                patch_location = min(max(total_runs * 0.09, patch_location), total_runs * 0.73)
             elif patch_count[int(round(patch_y))] == 2:
-                patch_location = min(max(total_runs * 0.12, patch_location), total_runs * 0.88)
+                patch_location = min(max(total_runs * 0.155, patch_location), total_runs * 0.82)
             elif patch_count[int(round(patch_y))] == 3:
-                patch_location = min(max(total_runs * 0.18, patch_location), total_runs * 0.94)
+                patch_location = min(max(total_runs * 0.245, patch_location), total_runs * 0.91)
             elif patch_count[int(round(patch_y))] == 4:
-                patch_location = min(max(total_runs * 0.24, patch_location), total_runs)
-            font_size = 10 if patch_count[int(round(patch_y))] > 2 and width > 0.1 * total_runs else 7
+                patch_location = min(max(total_runs * 0.335, patch_location), total_runs)
+            font_size = 10 if patch_count[int(round(patch_y))] > 2 else 7
             patch_location -= 0.035 * total_runs if font_size == 10 else 0.025 * total_runs
             patch_location = max(0, patch_location)
             plt.annotate('{0:.0%}'.format(width / total_runs), (patch_location, patch_y), fontsize=font_size)
