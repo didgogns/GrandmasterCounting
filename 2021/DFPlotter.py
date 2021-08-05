@@ -51,9 +51,9 @@ def plot_dataframe_pretty(gm_array, plot_title, total_runs, output_file, use_col
             elif patch_count[int(round(patch_y))] == 2:
                 patch_location = min(max(total_runs * 0.155, patch_location), total_runs * 0.82)
             elif patch_count[int(round(patch_y))] == 3:
-                patch_location = min(max(total_runs * 0.245, patch_location), total_runs * 0.91)
+                patch_location = min(max(total_runs * 0.09, patch_location), total_runs * 0.91)
             elif patch_count[int(round(patch_y))] == 4:
-                patch_location = min(max(total_runs * 0.335, patch_location), total_runs)
+                patch_location = min(max(total_runs * 0.155, patch_location), total_runs)
             font_size = 10 if patch_count[int(round(patch_y))] > 2 else 7
             patch_location -= 0.035 * total_runs if font_size == 10 else 0.025 * total_runs
             patch_location = max(0, patch_location)
