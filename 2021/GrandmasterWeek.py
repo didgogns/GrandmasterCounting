@@ -1,16 +1,10 @@
-import Util
+import typing
 from abc import abstractmethod, ABCMeta
+
+import Util
 from GrandmasterPool import GrandmasterPool
-
-
-class Serializable(metaclass=ABCMeta):
-    @abstractmethod
-    def init_from_json(self, json_value: dict, pool: GrandmasterPool):
-        pass
-
-    @abstractmethod
-    def export(self) -> dict:
-        pass
+from Grandmaster import GrandMaster
+from Match import Match, Serializable
 
 
 class TournamentBase(Serializable):
@@ -28,77 +22,98 @@ class TournamentBase(Serializable):
 
 
 class DualTournament(TournamentBase):
+    participants: typing.List[GrandMaster]
+    initials: typing.List[Match]
+    winners: typing.Optional[Match]
+    elimination: typing.Optional[Match]
+    decider: typing.Optional[Match]
+    first_place = typing.Optional[GrandMaster]
+    second_place = typing.Optional[GrandMaster]
+
     def __init__(self, participants, results):
         self.participants = participants
         self.initials, self.winners, self.elimination, self.decider = results
 
     @classmethod
     def init_from_json(cls, json_value: dict, pool: GrandmasterPool):
-        assert json_value
-        initials = [match_from_dict(initials, pool) for initials in json_value['initials']]
-        winners = match_from_dict(json_value['winners'], pool)
-        elimination = match_from_dict(json_value['elimination'], pool)
-        decider = match_from_dict(json_value['decider'], pool)
-        return cls(None, (initials, winners, elimination, decider))
+        if json_value is None:
+            return None
+        participants = [pool.get_master_by_name(participant) for participant in json_value['participants']]
+        initials = [Match.init_from_json(initial, pool) for initial in json_value['initials']]
+        winners = Match.init_from_json(json_value['winners'], pool)
+        elimination = Match.init_from_json(json_value['elimination'], pool)
+        decider = Match.init_from_json(json_value['decider'], pool)
+        return cls(participants, (initials, winners, elimination, decider))
 
     def finish(self):
         for idx in range(len(self.initials)):
-            if self.initials[idx] is None:
-                self.initials[idx] = Util.coin_flip(self.participants[2 * idx], self.participants[2 * idx + 1])
+            self.initials[idx].finish()
         if self.winners is None:
-            self.winners = Util.coin_flip(self.initials[0][0], self.initials[1][0])
+            self.winners = Match([self.initials[0].get_winner(), self.initials[1].get_winner()], None)
+        self.winners.finish()
         if self.elimination is None:
-            self.elimination = Util.coin_flip(self.initials[0][1], self.initials[1][1])
+            self.elimination = Match([self.initials[0].get_loser(), self.initials[1].get_loser()], None)
+        self.elimination.finish()
         if self.decider is None:
-            self.decider = Util.coin_flip(self.winners[1], self.elimination[0])
-        self.decider[1].receive(1)
-        self.elimination[1].receive(0)
-        return self.winners[0], self.decider[0]
+            self.decider = Match([self.winners.get_loser(), self.elimination.get_winner()], None)
+        self.decider.finish()
+        self.elimination.get_loser().receive(0)
+        self.decider.get_loser().receive(1)
+        self.first_place = self.winners.get_winner()
+        self.second_place = self.decider.get_winner()
 
     def validate(self):
         assert(len(self.participants) == 4)
         assert(len(self.initials) == 2)
 
     def is_finished(self) -> bool:
-        # TODO cache tournament result
-        return False
+        return self.first_place is not None and self.second_place is not None
 
     def export(self) -> dict:
         result = dict()
-        result['initials'] = [match_to_dict(initial) for initial in self.initials]
-        result['winners'] = match_to_dict(self.winners)
-        result['elimination'] = match_to_dict(self.elimination)
-        result['decider'] = match_to_dict(self.decider)
+        result['participants'] = [participant.name for participant in self.participants]
+        result['initials'] = [initial.export() for initial in self.initials]
+        result['winners'] = self.winners.export()
+        result['elimination'] = self.elimination.export()
+        result['decider'] = self.decider.export()
         return result
 
 
 class Tournament(TournamentBase):
+    participants: typing.List[GrandMaster]
+    quarterfinals: typing.List[Match]
+    semifinals: typing.List[Match]
+    final: typing.Optional[Match]
+
     def __init__(self, participants, results):
         self.participants = participants
         self.quarterfinals, self.semifinals, self.final = results
 
     @classmethod
     def init_from_json(cls, json_value: dict, pool: GrandmasterPool):
-        assert json_value
-        quarterfinals = [match_from_dict(quarterfinal, pool) for quarterfinal in json_value['quarterfinals']]
-        semifinals = [match_from_dict(semifinal, pool) for semifinal in json_value['semifinals']]
-        final = match_from_dict(json_value['final'], pool)
-        return cls(None, (quarterfinals, semifinals, final))
+        if json_value is None:
+            return None
+        participants = [pool.get_master_by_name(participant) for participant in json_value['participants']]
+        quarterfinals = [Match.init_from_json(quarterfinal, pool) for quarterfinal in json_value['quarterfinals']]
+        semifinals = [Match.init_from_json(semifinal, pool) for semifinal in json_value['semifinals']]
+        final = Match.init_from_json(json_value['final'], pool)
+        return cls(participants, (quarterfinals, semifinals, final))
 
     def finish(self):
         for idx in range(len(self.quarterfinals)):
-            if self.quarterfinals[idx] is None:
-                self.quarterfinals[idx] = Util.coin_flip(self.participants[2 * idx], self.participants[2 * idx + 1])
-            self.quarterfinals[idx][1].receive(2)
+            self.quarterfinals[idx].finish()
+            self.quarterfinals[idx].get_loser().receive(2)
         for idx in range(len(self.semifinals)):
             if self.semifinals[idx] is None:
-                self.semifinals[idx] = \
-                    Util.coin_flip(self.quarterfinals[2 * idx][0], self.quarterfinals[2 * idx + 1][0])
-            self.semifinals[idx][1].receive(3)
+                self.semifinals[idx] = Match([self.quarterfinals[2 * idx].get_winner(),
+                                              self.quarterfinals[2 * idx + 1].get_winner()], None)
+            self.semifinals[idx].finish()
+            self.semifinals[idx].get_loser().receive(3)
         if self.final is None:
-            self.final = Util.coin_flip(self.semifinals[0][0], self.semifinals[1][0])
-        self.final[1].receive(4)
-        self.final[0].receive(5)
+            self.final = Match([self.semifinals[0].get_winner(), self.semifinals[1].get_winner()], None)
+        self.final.finish()
+        self.final.get_loser().receive(4)
+        self.final.get_winner().receive(5)
 
     def validate(self):
         assert(len(self.participants) == 8)
@@ -106,24 +121,29 @@ class Tournament(TournamentBase):
         assert(len(self.semifinals) == 2)
 
     def is_finished(self):
-        # TODO cache tournament result
-        return False
+        return self.final is not None and self.final.is_first_player_won is not None
 
     def export(self) -> dict:
         result = dict()
-        result['quarterfinals'] = [match_to_dict(quarterfinal) for quarterfinal in self.quarterfinals]
-        result['semifinals'] = [match_to_dict(semifinal) for semifinal in self.semifinals]
-        result['final'] = match_to_dict(self.final)
+        result['participants'] = [participant.name for participant in self.participants]
+        result['quarterfinals'] = [quarterfinal.export() for quarterfinal in self.quarterfinals]
+        result['semifinals'] = [semifinal.export() for semifinal in self.semifinals]
+        result['final'] = self.final.export()
         return result
 
 
 class GrandmasterWeek(TournamentBase):
+    dual_tournament_groups = typing.List[DualTournament]
+    tournament: typing.Optional[Tournament]
+
     def __init__(self, dual_tournament_groups, tournament):
         self.dual_tournament_groups = dual_tournament_groups
         self.tournament = tournament
 
     @classmethod
     def init_from_json(cls, json_value: dict, pool: GrandmasterPool):
+        if json_value is None:
+            return None
         dual_tournament_group = json_value['dual_tournament_groups']
         dual_tournament_groups = [
             DualTournament.init_from_json(dual_tournament_json, pool) for dual_tournament_json in dual_tournament_group
@@ -134,7 +154,8 @@ class GrandmasterWeek(TournamentBase):
     def finish(self):
         dual_tournament_result = list()
         for dual_tournament in self.dual_tournament_groups:
-            dual_tournament_result.append(dual_tournament.finish())
+            dual_tournament.finish()
+            dual_tournament_result.append([dual_tournament.first_place, dual_tournament.second_place])
         if self.tournament is None:
             self.tournament = Tournament([
                 dual_tournament_result[0][0], dual_tournament_result[1][1],
@@ -155,7 +176,7 @@ class GrandmasterWeek(TournamentBase):
             self.tournament.validate()
 
     def is_finished(self):
-        return self.tournament.is_finished()
+        return self.tournament is not None and self.tournament.is_finished()
 
     def export(self) -> dict:
         result = dict()
@@ -187,15 +208,3 @@ class EmptyGrandmasterWeek(TournamentBase):
 
     def export(self) -> dict:
         return dict()
-
-
-def match_to_dict(match):
-    if match is None:
-        return None
-    return [match[0].name, match[1].name]
-
-
-def match_from_dict(match, pool):
-    if match is None:
-        return None
-    return pool.get_master_by_name(match[0]), pool.get_master_by_name(match[1])
