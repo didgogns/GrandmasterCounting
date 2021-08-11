@@ -19,8 +19,9 @@ class GrandMaster:
     def score(self):
         if self.score_sum == -1:
             self.score_sum = sum(self.scores)
-            if self.name == 'xBlyzes':
-                self.score_sum -= 2
+            # bonus score for S1 winner
+            if self.name in ['posesi', 'Frenetic', 'Nalguidan']:
+                self.score_sum += 5
         return self.score_sum
 
     def print(self):
