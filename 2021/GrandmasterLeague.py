@@ -41,3 +41,9 @@ class GrandMasterLeague(GrandmasterWeek.TournamentBase):
         result['grandmasters'] = [master.name for master in self.grandmasters]
         result['weeks'] = [week.export() for week in self.weeks]
         return result
+
+    def is_end_of_day(self) -> bool:
+        for week in self.weeks:
+            if not week.is_end_of_day():
+                return False
+        return True

@@ -67,7 +67,7 @@ class DualTournament(TournamentBase):
         assert(len(self.initials) == 2)
 
     def is_finished(self) -> bool:
-        return self.first_place is not None and self.second_place is not None
+        return self.decider.is_first_player_won is not None
 
     def export(self) -> dict:
         result = dict()
@@ -188,6 +188,41 @@ class GrandmasterWeek(TournamentBase):
         result['tournament'] = self.tournament.export() if self.tournament is not None else {}
         return result
 
+    def is_end_of_day(self) -> bool:
+        dual_tournament_not_started = True
+        dual_tournament_finished = True
+        for dual_tournament in self.dual_tournament_groups:
+            for initial in dual_tournament.initials:
+                if initial.is_first_player_won is not None:
+                    dual_tournament_not_started = False
+            if not dual_tournament.is_finished():
+                dual_tournament_finished = False
+        if dual_tournament_not_started:
+            return True
+        if not dual_tournament_finished:
+            return False
+        tournament_not_started = True
+        quarterfinal_finished = True
+        semifinal_not_started = True
+        final_finished = self.tournament.is_finished()
+        if final_finished:
+            return True
+        for quarterfinal in self.tournament.quarterfinals:
+            if quarterfinal.is_first_player_won is not None:
+                tournament_not_started = False
+            else:
+                quarterfinal_finished = False
+        for semifinal in self.tournament.semifinals:
+            if semifinal.is_first_player_won is not None:
+                semifinal_not_started = False
+        if tournament_not_started:
+            return True
+        if not quarterfinal_finished:
+            return False
+        if semifinal_not_started:
+            return True
+        return False
+
 
 # For week not yet started, no need to actually play all games
 class EmptyGrandmasterWeek(TournamentBase):
@@ -212,3 +247,7 @@ class EmptyGrandmasterWeek(TournamentBase):
 
     def export(self) -> dict:
         return dict()
+
+    @staticmethod
+    def is_end_of_day():
+        return True

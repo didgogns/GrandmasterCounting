@@ -191,9 +191,12 @@ class GrandmasterParser:
             grandmaster_week = self.parse(grandmaster_url)
             grandmaster_weeks[week] = grandmaster_week
         parsed_league = GrandMasterLeague(self.pool.get_masters(), grandmaster_weeks)
+        if not parsed_league.is_end_of_day():
+            print("This is not end of day!")
+            return None
         parsed_league_json = parsed_league.export()
         if cached_league_json == parsed_league_json:
-            # Nothing changed since last run
+            print("Nothing changed since last run!")
             return None
         if self.is_aws:
             raw_parsed = json.dumps(parsed_league_json)

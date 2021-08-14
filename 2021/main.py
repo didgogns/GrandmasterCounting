@@ -31,9 +31,7 @@ def run(event, context):
                 break
         print(datetime.datetime.now())
         print('parse is done')
-        if original_parsed_league is None:
-            print('nothing to do because this league is already parsed!')
-        else:
+        if original_parsed_league is not None:
             rank_collection = RankCollection()
             for i in range(num_runs):
                 parsed_league = copy.deepcopy(original_parsed_league)
