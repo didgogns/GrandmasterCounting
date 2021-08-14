@@ -6,7 +6,9 @@ class GrandmasterPool:
         self.pool = dict()
 
     def get_master_by_name(self, name):
-        if name in self.pool:
+        if not name:
+            return None
+        elif name in self.pool:
             return self.pool[name]
         else:
             grandmaster = GrandMaster(name)

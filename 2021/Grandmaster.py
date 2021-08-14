@@ -1,5 +1,6 @@
 from functools import total_ordering
 
+
 @total_ordering
 class GrandMaster:
     def __init__(self, name):
@@ -20,7 +21,7 @@ class GrandMaster:
         if self.score_sum == -1:
             self.score_sum = sum(self.scores)
             # bonus score for S1 winner
-            if self.name in ['posesi', 'Frenetic', 'Nalguidan']:
+            if self.name in ['Posesi', 'Frenetic', 'Nalguidan']:
                 self.score_sum += 5
         return self.score_sum
 

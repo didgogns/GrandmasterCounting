@@ -48,14 +48,14 @@ class DualTournament(TournamentBase):
     def finish(self):
         for idx in range(len(self.initials)):
             self.initials[idx].finish()
-        if self.winners is None:
-            self.winners = Match([self.initials[0].get_winner(), self.initials[1].get_winner()], None)
+        if self.winners.participants[0] is None:
+            self.winners.participants = [self.initials[0].get_winner(), self.initials[1].get_winner()]
         self.winners.finish()
-        if self.elimination is None:
-            self.elimination = Match([self.initials[0].get_loser(), self.initials[1].get_loser()], None)
+        if self.elimination.participants[0] is None:
+            self.elimination.participants = [self.initials[0].get_loser(), self.initials[1].get_loser()]
         self.elimination.finish()
-        if self.decider is None:
-            self.decider = Match([self.winners.get_loser(), self.elimination.get_winner()], None)
+        if self.decider.participants[0] is None:
+            self.decider.participants = [self.winners.get_loser(), self.elimination.get_winner()]
         self.decider.finish()
         self.elimination.get_loser().receive(0)
         self.decider.get_loser().receive(1)
@@ -71,7 +71,8 @@ class DualTournament(TournamentBase):
 
     def export(self) -> dict:
         result = dict()
-        result['participants'] = [participant.name for participant in self.participants]
+        result['participants'] = [participant.name if participant is not None else ''
+                                  for participant in self.participants]
         result['initials'] = [initial.export() for initial in self.initials]
         result['winners'] = self.winners.export()
         result['elimination'] = self.elimination.export()
@@ -101,16 +102,18 @@ class Tournament(TournamentBase):
 
     def finish(self):
         for idx in range(len(self.quarterfinals)):
+            if self.quarterfinals[idx].participants[0] is None:
+                self.quarterfinals[idx].participants = [self.participants[2 * idx], self.participants[2 * idx + 1]]
             self.quarterfinals[idx].finish()
             self.quarterfinals[idx].get_loser().receive(2)
         for idx in range(len(self.semifinals)):
-            if self.semifinals[idx] is None:
-                self.semifinals[idx] = Match([self.quarterfinals[2 * idx].get_winner(),
-                                              self.quarterfinals[2 * idx + 1].get_winner()], None)
+            if self.semifinals[idx].participants[0] is None:
+                self.semifinals[idx].participants = [self.quarterfinals[2 * idx].get_winner(),
+                                                     self.quarterfinals[2 * idx + 1].get_winner()]
             self.semifinals[idx].finish()
             self.semifinals[idx].get_loser().receive(3)
-        if self.final is None:
-            self.final = Match([self.semifinals[0].get_winner(), self.semifinals[1].get_winner()], None)
+        if self.final.participants[0] is None:
+            self.final.participants = [self.semifinals[0].get_winner(), self.semifinals[1].get_winner()]
         self.final.finish()
         self.final.get_loser().receive(4)
         self.final.get_winner().receive(5)
@@ -125,7 +128,8 @@ class Tournament(TournamentBase):
 
     def export(self) -> dict:
         result = dict()
-        result['participants'] = [participant.name for participant in self.participants]
+        result['participants'] = [participant.name if participant is not None else ''
+                                  for participant in self.participants]
         result['quarterfinals'] = [quarterfinal.export() for quarterfinal in self.quarterfinals]
         result['semifinals'] = [semifinal.export() for semifinal in self.semifinals]
         result['final'] = self.final.export()
@@ -142,7 +146,7 @@ class GrandmasterWeek(TournamentBase):
 
     @classmethod
     def init_from_json(cls, json_value: dict, pool: GrandmasterPool):
-        if json_value is None:
+        if not json_value:
             return None
         dual_tournament_group = json_value['dual_tournament_groups']
         dual_tournament_groups = [
@@ -156,13 +160,13 @@ class GrandmasterWeek(TournamentBase):
         for dual_tournament in self.dual_tournament_groups:
             dual_tournament.finish()
             dual_tournament_result.append([dual_tournament.first_place, dual_tournament.second_place])
-        if self.tournament is None:
-            self.tournament = Tournament([
+        # Tournament is not yet started
+        if self.tournament.participants[0] is None:
+            self.tournament.participants = [
                 dual_tournament_result[0][0], dual_tournament_result[1][1],
                 dual_tournament_result[2][0], dual_tournament_result[3][1],
                 dual_tournament_result[1][0], dual_tournament_result[0][1],
-                dual_tournament_result[3][0], dual_tournament_result[2][1]
-            ], ([None, None, None, None], [None, None], None))
+                dual_tournament_result[3][0], dual_tournament_result[2][1]]
         self.tournament.finish()
 
     def validate(self):
@@ -181,7 +185,7 @@ class GrandmasterWeek(TournamentBase):
     def export(self) -> dict:
         result = dict()
         result['dual_tournament_groups'] = [dual_tournament.export() for dual_tournament in self.dual_tournament_groups]
-        result['tournament'] = self.tournament.export()
+        result['tournament'] = self.tournament.export() if self.tournament is not None else {}
         return result
 
 
@@ -192,7 +196,7 @@ class EmptyGrandmasterWeek(TournamentBase):
 
     @classmethod
     def init_from_json(cls, json_value: dict, pool: GrandmasterPool):
-        return cls(participants = pool.get_masters())
+        return cls(participants=pool.get_masters())
 
     def finish(self):
         Util.shuffle(self.participants)

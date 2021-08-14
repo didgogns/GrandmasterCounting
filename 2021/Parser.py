@@ -1,17 +1,24 @@
 import json
 import os
+import typing
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.remote.webelement import WebElement
 
 from GrandmasterWeek import GrandmasterWeek, EmptyGrandmasterWeek, Tournament, DualTournament
 from GrandmasterPool import GrandmasterPool
 from GrandmasterLeague import GrandMasterLeague
+from Grandmaster import GrandMaster
+from Match import Match
 import S3Client
 import Util
 
 
-def parse_bracket_match(competitors, competitor_list, grandmaster_pool):
-    match = [None, None]
+def parse_bracket_match(competitors: typing.List[WebElement],
+                        competitor_list: typing.List[GrandMaster], grandmaster_pool: GrandmasterPool) -> Match:
+    winner = None
+    loser = None
+    participants = list()
     for competitor in competitors:
         competitor_name = competitor.find_element_by_class_name('BracketMatchCompetitor-name').text
 
@@ -24,15 +31,20 @@ def parse_bracket_match(competitors, competitor_list, grandmaster_pool):
             competitor_list.append(competitor_from_pool)
 
         competitor_class = competitor.get_attribute('class')
+        participants.append(competitor_from_pool)
         if 'matchWin' in competitor_class:
-            match[0] = competitor_from_pool
+            winner = competitor_from_pool
         elif 'matchLoss' in competitor_class:
-            match[1] = competitor_from_pool
-    if match[0] is None:
-        match = None
+            loser = competitor_from_pool
     # hard coding for 15-people NA league
-    if match is not None and match[1] is None:
-        match[1] = grandmaster_pool.get_master_by_name('-')
+    if winner is not None and loser is None:
+        participants.append(grandmaster_pool.get_master_by_name('-'))
+    is_first_player_won = None
+    if winner is not None:
+        is_first_player_won = (participants[0].name == winner.name)
+    if not participants:
+        participants = [None, None]
+    match = Match(participants, is_first_player_won)
     return match
 
 
@@ -173,9 +185,8 @@ class GrandmasterParser:
                     and grandmaster_weeks[week].tournament.final is not None:
                 continue
 
-            # TODO change seasonId later
             grandmaster_url =\
-                'https://playhearthstone.com/en-us/esports/standings/?region=%s&seasonId=1&stage=%i&year=2021'\
+                'https://playhearthstone.com/en-us/esports/standings/?region=%s&seasonId=2&stage=%i&year=2021'\
                 % (locale, week)
             grandmaster_week = self.parse(grandmaster_url)
             grandmaster_weeks[week] = grandmaster_week

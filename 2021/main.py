@@ -4,7 +4,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 from Parser import GrandmasterParser
 from GrandmasterPool import GrandmasterPool
-from GrandmasterRankCollection import RankCollection, RankCollectionForPlayoff
+from GrandmasterRankCollection import RankCollection
 from DFPlotter import plot_dataframe_pretty
 import tweet_api
 import Util
@@ -35,13 +35,11 @@ def run(event, context):
             print('nothing to do because this league is already parsed!')
         else:
             rank_collection = RankCollection()
-            rank_collection_for_playoff = RankCollectionForPlayoff()
             for i in range(num_runs):
                 parsed_league = copy.deepcopy(original_parsed_league)
                 parsed_league.finish()
                 rank = parsed_league.get_ranks()
                 rank_collection.add_result(rank)
-                rank_collection_for_playoff.add_result(rank)
             print(datetime.datetime.now())
             print('simulation done')
 
@@ -49,17 +47,11 @@ def run(event, context):
             print(gm_array)
             plot_dataframe_pretty(gm_array, region + ' Grandmaster standings',
                                   num_runs, path_prefix + region + '.png', False)
-            gm_array_for_playoff = rank_collection_for_playoff.export_to_array()
-            print(gm_array_for_playoff)
-            plot_dataframe_pretty(gm_array_for_playoff, region + ' Grandmaster playoff',
-                                  num_runs, path_prefix + region + '_playoff.png', True)
 
             datetime_parsed = datetime.datetime.strptime(event['time'], '%Y-%m-%dT%H:%M:%SZ')
             datetime_formatted = datetime.datetime.strftime(datetime_parsed, '%H:%M (UTC) on %b %d, %Y')
             tweet_api.post_picture_and_message(path_prefix + region + '.png',
                                                region + ' Grandmaster standing as of ' + datetime_formatted)
-            tweet_api.post_picture_and_message(path_prefix + region + '_playoff.png',
-                                               region + ' Grandmaster playoff odds as of ' + datetime_formatted)
             print(datetime.datetime.now())
             print('tweet post done')
 

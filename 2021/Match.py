@@ -20,7 +20,8 @@ class Match(Serializable):
     participants: typing.List[GrandMaster]
     is_first_player_won: typing.Optional[bool] = None
 
-    def __init__(self, participants: typing.List[GrandMaster], is_first_player_won: typing.Optional[bool] = None):
+    def __init__(self, participants: typing.List[typing.Optional[GrandMaster]],
+                 is_first_player_won: typing.Optional[bool] = None):
         assert(len(participants) == 2)
         self.participants = participants
         self.is_first_player_won = is_first_player_won
@@ -35,12 +36,14 @@ class Match(Serializable):
 
     def export(self) -> dict:
         result = dict()
-        result['participants'] = [participant.name for participant in self.participants]
+        result['participants'] = [participant.name if participant is not None else ''
+                                  for participant in self.participants]
         result['is_first_player_won'] = self.is_first_player_won
         return result
 
     def finish(self):
-        if self.is_first_player_won is not None:
+        assert(self.participants[0] is not None and self.participants[1] is not None)
+        if self.is_first_player_won is None:
             self.is_first_player_won = bool(random.getrandbits(1))
 
     def get_winner(self):
