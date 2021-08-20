@@ -153,7 +153,7 @@ class GrandmasterParser:
             else:
                 finals = match
         parsed_tournament = None
-        if quarterfinals != [None, None, None, None]:
+        if competitor_list:
             parsed_tournament = Tournament(competitor_list, (quarterfinals, semifinals, finals))
         if parsed_dual_tournaments == [None, None, None, None]:
             parsed_week = EmptyGrandmasterWeek(self.pool.get_masters())
