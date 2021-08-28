@@ -1,10 +1,15 @@
 from abc import ABC
+import typing
 
 import Util
 import GrandmasterWeek
+from Grandmaster import GrandMaster
 
 
 class GrandMasterLeague(GrandmasterWeek.TournamentBase):
+    grandmasters: typing.List[GrandMaster]
+    weeks: typing.List[GrandmasterWeek.TournamentBase]
+
     def __init__(self, grandmasters, weeks):
         self.grandmasters = grandmasters
         self.weeks = weeks
@@ -47,3 +52,7 @@ class GrandMasterLeague(GrandmasterWeek.TournamentBase):
             if not week.is_end_of_day():
                 return False
         return True
+
+    def finish_matches_intelligently(self):
+        for week in self.weeks:
+            week.finish_matches_intelligently()

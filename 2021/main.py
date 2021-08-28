@@ -1,6 +1,5 @@
 import copy
 import datetime
-from selenium.common.exceptions import NoSuchElementException
 
 from Parser import GrandmasterParser
 from GrandmasterPool import GrandmasterPool
@@ -21,14 +20,7 @@ def run(event, context):
         gm_pool = GrandmasterPool()
         parser = GrandmasterParser(gm_pool, Util.is_aws())
         num_runs = 100000
-        original_parsed_league = None
-        while original_parsed_league is None:
-            try:
-                original_parsed_league = parser.parse_league(region)
-            except NoSuchElementException:
-                pass
-            if original_parsed_league is None:
-                break
+        original_parsed_league = parser.parse_league(region)
         print(datetime.datetime.now())
         print('parse is done')
         if original_parsed_league is not None:

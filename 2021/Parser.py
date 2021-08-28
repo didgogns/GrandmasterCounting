@@ -4,6 +4,7 @@ import typing
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.common.exceptions import NoSuchElementException
 
 from GrandmasterWeek import GrandmasterWeek, EmptyGrandmasterWeek, Tournament, DualTournament
 from GrandmasterPool import GrandmasterPool
@@ -161,6 +162,7 @@ class GrandmasterParser:
         else:
             parsed_week = GrandmasterWeek(parsed_dual_tournaments, parsed_tournament)
         parsed_week.validate()
+        parsed_week.finish_matches_intelligently()
         return parsed_week
 
     def parse_league(self, locale):
@@ -188,7 +190,13 @@ class GrandmasterParser:
             grandmaster_url =\
                 'https://playhearthstone.com/en-us/esports/standings/?region=%s&seasonId=2&stage=%i&year=2021'\
                 % (locale, week)
-            grandmaster_week = self.parse(grandmaster_url)
+            grandmaster_week = None
+            while grandmaster_week is None:
+                try:
+                    grandmaster_week = self.parse(grandmaster_url)
+                except NoSuchElementException:
+                    print('NoSuchElementException caught')
+                    pass
             grandmaster_weeks[week] = grandmaster_week
         parsed_league = GrandMasterLeague(self.pool.get_masters(), grandmaster_weeks)
         if not parsed_league.is_end_of_day():

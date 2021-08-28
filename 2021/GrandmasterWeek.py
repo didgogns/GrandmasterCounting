@@ -20,6 +20,10 @@ class TournamentBase(Serializable):
     def validate(self):
         pass
 
+    @abstractmethod
+    def finish_matches_intelligently(self):
+        pass
+
 
 class DualTournament(TournamentBase):
     participants: typing.List[GrandMaster]
@@ -79,6 +83,16 @@ class DualTournament(TournamentBase):
         result['decider'] = self.decider.export()
         return result
 
+    def finish_matches_intelligently(self):
+        winners_loser, elimination_winner = self.decider.participants
+        if self.elimination.is_first_player_won is None and elimination_winner is not None:
+            self.elimination.is_first_player_won = self.elimination.participants[0].name == elimination_winner.name
+        if self.winners.is_first_player_won is None and winners_loser is not None:
+            self.winners.is_first_player_won = self.winners.participants[0].name != winners_loser.name
+        for idx, initial in enumerate(self.initials):
+            if initial.is_first_player_won is None and self.winners.participants[idx] is not None:
+                initial.is_first_player_won = initial.participants[0].name == self.winners.participants[idx].name
+
 
 class Tournament(TournamentBase):
     participants: typing.List[GrandMaster]
@@ -135,6 +149,21 @@ class Tournament(TournamentBase):
         result['final'] = self.final.export()
         return result
 
+    def finish_matches_intelligently(self):
+        for idx, semifinal in enumerate(self.semifinals):
+            if semifinal.is_first_player_won is None and self.final.participants[idx] is not None:
+                semifinal.is_first_player_won = semifinal.participants[0].name == self.final.participants[idx].name
+
+        for idx, quarterfinal in enumerate(self.quarterfinals):
+            potential_winner = self.semifinals[idx // 2].participants[idx % 2]
+            if quarterfinal.is_first_player_won is None and potential_winner is not None:
+                quarterfinal.is_first_player_won = quarterfinal.participants[0].name == potential_winner.name
+
+    @staticmethod
+    def empty():
+        return Tournament([None] * 8, ([Match.empty(), Match.empty(), Match.empty(), Match.empty()],
+                          [Match.empty(), Match.empty()], Match.empty()))
+
 
 class GrandmasterWeek(TournamentBase):
     dual_tournament_groups = typing.List[DualTournament]
@@ -161,6 +190,8 @@ class GrandmasterWeek(TournamentBase):
             dual_tournament.finish()
             dual_tournament_result.append([dual_tournament.first_place, dual_tournament.second_place])
         # Tournament is not yet started
+        if self.tournament is None:
+            self.tournament = Tournament.empty()
         if self.tournament.participants[0] is None:
             self.tournament.participants = [
                 dual_tournament_result[0][0], dual_tournament_result[1][1],
@@ -190,6 +221,7 @@ class GrandmasterWeek(TournamentBase):
 
     def is_end_of_day(self) -> bool:
         dual_tournament_not_started = True
+        dual_tournament_finished_except_decider = True
         dual_tournament_finished = True
         for dual_tournament in self.dual_tournament_groups:
             for initial in dual_tournament.initials:
@@ -197,9 +229,15 @@ class GrandmasterWeek(TournamentBase):
                     dual_tournament_not_started = False
             if not dual_tournament.is_finished():
                 dual_tournament_finished = False
-        if dual_tournament_not_started:
+            if dual_tournament.winners.is_first_player_won is None or\
+                    dual_tournament.elimination.is_first_player_won is None or\
+                    dual_tournament.is_finished():
+                dual_tournament_finished_except_decider = False
+        if dual_tournament_not_started or dual_tournament_finished_except_decider:
             return True
         if not dual_tournament_finished:
+            return False
+        if self.tournament is None:
             return False
         tournament_not_started = True
         quarterfinal_finished = True
@@ -222,6 +260,18 @@ class GrandmasterWeek(TournamentBase):
         if semifinal_not_started:
             return True
         return False
+
+    def finish_matches_intelligently(self):
+        if self.tournament is not None:
+            self.tournament.finish_matches_intelligently()
+            place_of_decide_winner_in_tournament = [5, 1, 7, 3]
+            for idx, dual_tournament in enumerate(self.dual_tournament_groups):
+                potential_winner = self.tournament.participants[place_of_decide_winner_in_tournament[idx]]
+                if dual_tournament.decider.is_first_player_won is None and potential_winner is not None:
+                    dual_tournament.decider.is_first_player_won =\
+                    (dual_tournament.decider.participant[0].name == potential_winner.name)
+        for dual_tournament in self.dual_tournament_groups:
+            dual_tournament.finish_matches_intelligently()
 
 
 # For week not yet started, no need to actually play all games
@@ -248,6 +298,8 @@ class EmptyGrandmasterWeek(TournamentBase):
     def export(self) -> dict:
         return dict()
 
-    @staticmethod
-    def is_end_of_day():
+    def is_end_of_day(self):
         return True
+
+    def finish_matches_intelligently(self):
+        pass

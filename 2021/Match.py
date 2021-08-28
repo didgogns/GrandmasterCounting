@@ -53,3 +53,7 @@ class Match(Serializable):
     def get_loser(self):
         loser_idx = 1 if self.is_first_player_won else 0
         return self.participants[loser_idx]
+
+    @staticmethod
+    def empty():
+        return Match([None, None], None)
