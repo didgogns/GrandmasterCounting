@@ -106,7 +106,7 @@ class Tournament(TournamentBase):
 
     @classmethod
     def init_from_json(cls, json_value: dict, pool: GrandmasterPool):
-        if json_value is None:
+        if json_value is None or not json_value:
             return None
         participants = [pool.get_master_by_name(participant) for participant in json_value['participants']]
         quarterfinals = [Match.init_from_json(quarterfinal, pool) for quarterfinal in json_value['quarterfinals']]
