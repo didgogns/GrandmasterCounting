@@ -17,13 +17,15 @@ plot_title: given by main.py
 total_runs: given by main.py (100k)
 output_file: location to store output png file
 '''
+
+
 def plot_dataframe_pretty(gm_array, plot_title, total_runs, output_file, use_color_scheme):
     gm_array, labels = gm_array
     rcParams.update({'figure.autolayout': True})
     gm_names = list(gm_array[:, 0])
     number_of_player = len(gm_names)
     column_data = [[int(x) for x in gm_array[:, idx]] for idx in range(1, 6)]
-    column_lefts = [0] * 5
+    column_lefts = [[0] * number_of_player] * 5
     column_lefts[0] = [0 for _ in range(number_of_player)]
     for idx in range(1, 5):
         column_lefts[idx] = [column_lefts[idx - 1][i] + column_data[idx - 1][i] for i in range(number_of_player)]
@@ -45,11 +47,11 @@ def plot_dataframe_pretty(gm_array, plot_title, total_runs, output_file, use_col
                 patch_y = patch.get_y() + 0.2
             patch_location = patch.get_x() + width / 2
             if patch_count[int(round(patch_y))] == 0:
-                patch_location = min(max(0, patch_location), total_runs * 0.64)
+                patch_location = min(max(0, patch_location), total_runs * 0.87)
             elif patch_count[int(round(patch_y))] == 1:
-                patch_location = min(max(total_runs * 0.09, patch_location), total_runs * 0.73)
+                patch_location = min(max(total_runs * 0.09, patch_location), total_runs * 0.935)
             elif patch_count[int(round(patch_y))] == 2:
-                patch_location = min(max(total_runs * 0.155, patch_location), total_runs * 0.82)
+                patch_location = min(max(total_runs * 0.155, patch_location), total_runs * 1)
             elif patch_count[int(round(patch_y))] == 3:
                 patch_location = min(max(total_runs * 0.09, patch_location), total_runs * 0.91)
             elif patch_count[int(round(patch_y))] == 4:
