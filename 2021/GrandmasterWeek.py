@@ -238,7 +238,7 @@ class GrandmasterWeek(TournamentBase):
         if not dual_tournament_finished:
             return False
         if self.tournament is None:
-            return True
+            return False
         tournament_not_started = True
         quarterfinal_finished = True
         semifinal_not_started = True
