@@ -16,9 +16,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Dependency
-        run: cd 2021 && pip install -r requirements.txt -t .
+        run: cd 2022 && pip install -r requirements.txt -t .
       - name: Build zip
-        run: cd 2021 && zip -r ../deployment.zip * -x "bin/*"
+        run: cd 2022 && zip -r ../deployment.zip * -x "bin/*"
       - name: Check zip file size
         run: ls -al deployment.zip
       - name: Deploy lambda
