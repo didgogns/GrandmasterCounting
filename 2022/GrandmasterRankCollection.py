@@ -23,16 +23,16 @@ class RankCollection:
         for i in range(2):
             self.masters[rank_list[i]].results[0] += 1
 
-        for i in range(2, 6):
+        for i in range(2, 4):
             self.masters[rank_list[i]].results[1] += 1
 
-        for i in range(6, 8):
+        for i in range(4, 6):
             self.masters[rank_list[i]].results[2] += 1
 
-        for i in range(8, 12):
+        for i in range(6, 8):
             self.masters[rank_list[i]].results[3] += 1
 
-        for i in range(12, 16):
+        for i in range(8, 16):
             self.masters[rank_list[i]].results[4] += 1
 
         for i in range(16):
@@ -44,4 +44,4 @@ class RankCollection:
         ind = np.lexsort([gm_array[:, 0],
                           gm_array[:, 6].astype(int)])
         gm_array = gm_array[ind]
-        return gm_array, ['rank 1-2', 'rank 3-6', 'rank 7-8', 'rank 9-12', 'relegation']
+        return gm_array, ['rank 1-2', 'rank 3-4', 'rank 5-6', 'rank 7-8', 'rank 9-16']

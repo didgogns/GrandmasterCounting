@@ -61,8 +61,8 @@ class DualTournament(TournamentBase):
         if self.decider.participants[0] is None:
             self.decider.participants = [self.winners.get_loser(), self.elimination.get_winner()]
         self.decider.finish()
-        self.elimination.get_loser().receive(0)
-        self.decider.get_loser().receive(1)
+        self.elimination.get_loser().receive_score(0)
+        self.decider.get_loser().receive_score(1)
         self.first_place = self.winners.get_winner()
         self.second_place = self.decider.get_winner()
 
@@ -119,18 +119,18 @@ class Tournament(TournamentBase):
             if self.quarterfinals[idx].participants[0] is None:
                 self.quarterfinals[idx].participants = [self.participants[2 * idx], self.participants[2 * idx + 1]]
             self.quarterfinals[idx].finish()
-            self.quarterfinals[idx].get_loser().receive(2)
+            self.quarterfinals[idx].get_loser().receive_score(2)
         for idx in range(len(self.semifinals)):
             if self.semifinals[idx].participants[0] is None:
                 self.semifinals[idx].participants = [self.quarterfinals[2 * idx].get_winner(),
                                                      self.quarterfinals[2 * idx + 1].get_winner()]
             self.semifinals[idx].finish()
-            self.semifinals[idx].get_loser().receive(3)
+            self.semifinals[idx].get_loser().receive_score(3)
         if self.final.participants[0] is None:
             self.final.participants = [self.semifinals[0].get_winner(), self.semifinals[1].get_winner()]
         self.final.finish()
-        self.final.get_loser().receive(4)
-        self.final.get_winner().receive(5)
+        self.final.get_loser().receive_score(4)
+        self.final.get_winner().receive_score(5)
 
     def validate(self):
         assert(len(self.participants) == 8)
@@ -269,12 +269,13 @@ class GrandmasterWeek(TournamentBase):
                 potential_winner = self.tournament.participants[place_of_decide_winner_in_tournament[idx]]
                 if dual_tournament.decider.is_first_player_won is None and potential_winner is not None:
                     dual_tournament.decider.is_first_player_won =\
-                    (dual_tournament.decider.participant[0].name == potential_winner.name)
+                        (dual_tournament.decider.participant[0].name == potential_winner.name)
         for dual_tournament in self.dual_tournament_groups:
             dual_tournament.finish_matches_intelligently()
 
 
-# For week not yet started, no need to actually play all games
+# For week not yet started.
+# Now head to head result matters, make random seeding for groups and play
 class EmptyGrandmasterWeek(TournamentBase):
     def __init__(self, participants):
         self.participants = participants
@@ -285,9 +286,18 @@ class EmptyGrandmasterWeek(TournamentBase):
 
     def finish(self):
         Util.shuffle(self.participants)
-        score_table = [5, 4, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0]
-        for idx in range(len(self.participants)):
-            self.participants[idx].receive(score_table[idx])
+        initial_matches = [Match([self.participants[idx * 2], self.participants[idx * 2 + 1]], None)
+                           for idx in range(len(self.participants) // 2)]
+        # DualTournament(competitor_list, (initials, winners, losers, decider))
+        dual_tournament_groups = [DualTournament(
+            self.participants[idx * 4:idx * 4 + 4],
+            ([initial_matches[idx * 2], initial_matches[idx * 2 + 1]],
+             Match([None, None], None), Match([None, None], None), Match([None, None], None))
+        )
+            for idx in range(len(initial_matches) // 2)]
+        # Empty match template: Match([None, None], None)
+        actual_week = GrandmasterWeek(dual_tournament_groups, None)
+        actual_week.finish()
 
     def validate(self):
         assert(len(self.participants) == 16)

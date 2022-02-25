@@ -181,14 +181,14 @@ class GrandmasterParser:
         if cached_league_json is not None:
             print('found cached file:')
             print(cached_league_json)
-        grandmaster_weeks = cached_league.weeks if cached_league is not None else [None] * 7
-        for week in range(7):
+        grandmaster_weeks = cached_league.weeks if cached_league is not None else [None] * 3
+        for week in range(3):
             if grandmaster_weeks[week] is not None and grandmaster_weeks[week].tournament is not None\
                     and grandmaster_weeks[week].tournament.final is not None:
                 continue
 
             grandmaster_url =\
-                'https://playhearthstone.com/en-us/esports/standings/?region=%s&seasonId=2&stage=%i&year=2021'\
+                'https://playhearthstone.com/en-us/esports/standings/?region=%s&seasonId=1&stage=%i&year=2022'\
                 % (locale, week)
             grandmaster_week = None
             while grandmaster_week is None:

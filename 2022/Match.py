@@ -45,6 +45,8 @@ class Match(Serializable):
         assert(self.participants[0] is not None and self.participants[1] is not None)
         if self.is_first_player_won is None:
             self.is_first_player_won = bool(random.getrandbits(1))
+        self.participants[0].receive_match_result(self.participants[1].name, self.is_first_player_won)
+        self.participants[1].receive_match_result(self.participants[0].name, not self.is_first_player_won)
 
     def get_winner(self):
         winner_idx = 0 if self.is_first_player_won else 1

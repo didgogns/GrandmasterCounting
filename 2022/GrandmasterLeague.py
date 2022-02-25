@@ -39,6 +39,15 @@ class GrandMasterLeague(GrandmasterWeek.TournamentBase):
 
     def get_ranks(self):
         Util.shuffle(self.grandmasters)
+        grandmaster_score_group = dict()
+        for grandmaster in self.grandmasters:
+            score = grandmaster.score()
+            if score not in grandmaster_score_group:
+                grandmaster_score_group[score] = list()
+            grandmaster_score_group[score].append(grandmaster)
+        for grandmasters in grandmaster_score_group.values():
+            for grandmaster in grandmasters:
+                grandmaster.receive_players_with_same_points(grandmasters)
         return [grandmaster.name for grandmaster in sorted(self.grandmasters)]
 
     def export(self) -> dict:

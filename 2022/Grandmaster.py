@@ -7,36 +7,44 @@ class GrandMaster:
         self.name = name
         self.scores = list()
         self.score_sum = -1
-        self.sorted_scores = None
+        self.match_result = dict()
+        self.win_rate = -1.0
 
-    def receive(self, score):
+    def receive_score(self, score):
         self.scores.append(score)
 
-    def result(self):
-        if self.sorted_scores is None:
-            self.sorted_scores = sorted(self.scores, reverse=True)
-        return self.sorted_scores
+    def receive_match_result(self, opponent: str, won: bool):
+        if opponent not in self.match_result:
+            self.match_result[opponent] = [0, 0] # lose, win
+        self.match_result[opponent][won] += 1
+
+    def receive_players_with_same_points(self, opponents):
+        score_against_same_points = [0, 0]
+        for opponent in opponents:
+            if opponent.name not in self.match_result:
+                continue
+            opponent_result = self.match_result[opponent.name]
+            score_against_same_points = [score_against_same_points[idx] + opponent_result[idx] for idx in range(2)]
+        if sum(score_against_same_points) > 0:
+            self.win_rate = score_against_same_points[1] / sum(score_against_same_points)
 
     def score(self):
         if self.score_sum == -1:
             self.score_sum = sum(self.scores)
-            # bonus score for S1 winner
-            if self.name in ['Posesi', 'Frenetic', 'Nalguidan']:
-                self.score_sum += 5
         return self.score_sum
 
     def print(self):
-        print(self.name, self.score_sum, self.sorted_scores)
+        print(self.name, self.score_sum, self.match_result)
 
     def __eq__(self, other):
-        return self.result() == other.result()
+        return self.score() == other.score() and self.win_rate == other.winrate
 
     def __lt__(self, other):
         if self.score() > other.score():
             return True
         if self.score() < other.score():
             return False
-        return self.result() > other.result()
+        return self.win_rate > other.win_rate
 
 
 if __name__ == '__main__':
